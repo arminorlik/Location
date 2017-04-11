@@ -18,7 +18,12 @@ import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
 
+import java.text.DateFormat;
 import java.text.DecimalFormat;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.TimeZone;
 
 public class MapsActivity extends FragmentActivity implements OnMapReadyCallback, View.OnClickListener {
 
@@ -29,6 +34,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private Double lat;
     private Double lon;
     private Double StartLat, StartLon, StopLat, StopLon;
+    private Date czasS;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -47,9 +53,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         dlugosc = intent.getStringExtra("dlugosc");
         szerokosc = intent.getStringExtra("szerokosc");
         StartP = new LatLng(Double.parseDouble(szerokosc), Double.parseDouble(dlugosc));
-        //StopP  = new LatLng(0,0);
+        czasS = new Date();
 
-        //koord = new LatLng(StartLat, StartLon);
     }
 
     @Override
@@ -81,8 +86,25 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 break;
 
             case R.id.butKoniec:
-                Toast.makeText(this, "koniec", Toast.LENGTH_SHORT).show();
-                break;
+               int ss,mm,hh;
+
+                long czasF = (new Date().getTime() - czasS.getTime());
+
+                Calendar calendar = Calendar.getInstance();
+                calendar.setTimeInMillis(czasF);
+
+                TimeZone UTC = TimeZone.getTimeZone("UTC");
+
+                Date date = new Date(czasF);
+                DateFormat formatter = new SimpleDateFormat("HH:mm:ss");
+                formatter.setTimeZone(UTC);
+                String dateFormatted = formatter.format(date);
+
+
+                Toast.makeText(this, dateFormatted, Toast.LENGTH_SHORT).show();
+
+
+               break;
         }
     }
 
