@@ -18,14 +18,17 @@ import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
 
+import java.text.DecimalFormat;
+
 public class MapsActivity extends FragmentActivity implements OnMapReadyCallback, View.OnClickListener {
 
     private GoogleMap mMap;
     private String dlugosc;
     private String szerokosc;
-    private LatLng koord;
+    private LatLng koord, StartP, StopP;
     private Double lat;
     private Double lon;
+    private Double StartLat, StartLon, StopLat, StopLon;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -43,41 +46,38 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         Intent intent = getIntent();
         dlugosc = intent.getStringExtra("dlugosc");
         szerokosc = intent.getStringExtra("szerokosc");
+        StartP = new LatLng(Double.parseDouble(szerokosc), Double.parseDouble(dlugosc));
+        //StopP  = new LatLng(0,0);
 
-        koord = new LatLng(Double.parseDouble(szerokosc), Double.parseDouble(dlugosc));
-
+        //koord = new LatLng(StartLat, StartLon);
     }
-
-
 
     @Override
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
-        addMarker();
-
+        addMarker(StartP);
     }
 
-    private void addMarker() {
-        mMap.addMarker(new MarkerOptions().position(koord));
+    private void addMarker(LatLng pozycja) {
+        mMap.addMarker(new MarkerOptions().position(pozycja));
         CameraPosition cameraPosition = new CameraPosition.Builder()
-                .target(koord)
+                .target(pozycja)
                 .zoom(10).build();
         mMap.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition));
     }
 
     @Override
     public void onClick(View view) {
-        switch (view.getId()){
+        switch (view.getId()) {
             case R.id.butStop:
                 GPStracker gpStracker = new GPStracker(getApplicationContext());
                 Location location = gpStracker.getlocation();
-                if( location != null) {
-                    lat = location.getLatitude();
-                    lon = location.getLongitude();
+                if (location != null) {
+                    //StopP = new LatLng(location.getLatitude(), location.getLongitude());
+                    StopP = new LatLng(51.301146, 19.383130);
                 }
-
-                koord = new LatLng(lat, lon);
-                addMarker();
+                addMarker(StopP);
+                ObliczanieOdl(StartP, StopP);
                 break;
 
             case R.id.butKoniec:
@@ -85,9 +85,32 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 break;
         }
     }
+
+    public double ObliczanieOdl(LatLng StartP, LatLng StopP) {
+        int Radius = 6371;// radius of earth in Km
+        double lat1 = StartP.latitude;
+        double lat2 = StopP.latitude;
+        double lon1 = StartP.longitude;
+        double lon2 = StopP.longitude;
+        double dLat = Math.toRadians(lat2 - lat1);
+        double dLon = Math.toRadians(lon2 - lon1);
+        double a = Math.sin(dLat / 2) * Math.sin(dLat / 2)
+                + Math.cos(Math.toRadians(lat1))
+                * Math.cos(Math.toRadians(lat2)) * Math.sin(dLon / 2)
+                * Math.sin(dLon / 2);
+        double c = 2 * Math.asin(Math.sqrt(a));
+        double valueResult = Radius * c;
+        double km = valueResult / 1;
+        DecimalFormat newFormat = new DecimalFormat("####");
+        int kmInDec = Integer.valueOf(newFormat.format(km));
+        double meter = valueResult % 1000;
+        int meterInDec = Integer.valueOf(newFormat.format(meter));
+        Toast.makeText(getApplicationContext(), "Radius Value "  + valueResult + "   KM  " + kmInDec
+                + " Meter   " + meter, Toast.LENGTH_LONG).show();
+
+        return Radius * c;
+    }
 }
-
-
 
 /*
 // Acquire a reference to the system Location Manager
